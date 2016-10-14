@@ -24,6 +24,8 @@ public class MainActivity extends AppCompatActivity {
 
         saki.registerButton(button, "testing this hint");
 
+        saki.storeTheSpeechText(123,"this is a test speech");
+
     }
 
     @Override

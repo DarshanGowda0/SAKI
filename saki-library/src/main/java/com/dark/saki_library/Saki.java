@@ -9,9 +9,15 @@ import android.provider.Settings;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.support.annotation.NonNull;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -135,10 +141,6 @@ public class Saki implements RecognitionListener {
 
     }
 
-    private void sendData(String data) {
-
-
-    }
 
     @Override
     public void onPartialResults(Bundle partialResults) {
@@ -209,12 +211,10 @@ public class Saki implements RecognitionListener {
     public void registerButton(final Button button, final String hint) {
 
         listOfIds.add(button.getId());
+        idsHash.put(button.getId(), ViewTypes.BUTTON);
 
-        idsHash.put(button.getId(), "Button");
         // add to the database
-
         final DatabaseReference localRef = databaseReference.child(PACKAGE_TABLE).child(packageName).child(ACTIVITY_TABLE).child(activityName).child(VIEW_TABLE);
-
         localRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -225,18 +225,122 @@ public class Saki implements RecognitionListener {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+    }
 
-                Log.d(TAG, "onCancelled: ");
 
+    public void registerEditText(final EditText editText, final String hint) {
+
+        listOfIds.add(editText.getId());
+        idsHash.put(editText.getId(), ViewTypes.EDIT_TEXT);
+        // add to the database
+
+        final DatabaseReference localRef = databaseReference.child(PACKAGE_TABLE).child(packageName).child(ACTIVITY_TABLE).child(activityName).child(VIEW_TABLE);
+
+        localRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getValue() == null) {
+                    localRef.child("" + editText.getId()).child("hint").setValue(hint);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
             }
         });
 
 
     }
 
+    public void registerTextView(final TextView textView, final String hint) {
+
+        listOfIds.add(textView.getId());
+        idsHash.put(textView.getId(), ViewTypes.TEXT_VIEW);
+        // add to the database
+
+        final DatabaseReference localRef = databaseReference.child(PACKAGE_TABLE).child(packageName).child(ACTIVITY_TABLE).child(activityName).child(VIEW_TABLE);
+
+        localRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getValue() == null) {
+                    localRef.child("" + textView.getId()).child("hint").setValue(hint);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+
+
+    }
+
+
     public void destroy() {
         speech.destroy();
         activity.stopService(new Intent(activity, ChatHeadService.class));
+
+    }
+
+    public void sendData(String speech) {
+
+    }
+
+    public void parseData(String data, String speech) {
+
+        Integer id = 0;
+        String splitString = "";
+
+        //parse the json and store in those objects
+
+        if (idsHash.containsKey(id)) {
+            View view = activity.findViewById(id);
+
+            String type = idsHash.get(id);
+
+            switch (type) {
+
+                case ViewTypes.BUTTON:
+                    if (view.hasOnClickListeners()) view.callOnClick();
+                    break;
+
+                case ViewTypes.EDIT_TEXT:
+                    ((EditText) view).setText(splitString);
+                    break;
+
+                case ViewTypes.TEXT_VIEW:
+                    ((TextView) view).setText(splitString);
+                    break;
+
+            }
+
+            storeTheSpeechText(id, speech);
+
+        }
+
+
+    }
+
+    public void storeTheSpeechText(Integer id, String speech) {
+
+        String key = databaseReference.child(PACKAGE_TABLE).child(packageName).child("bucket").child(String.valueOf(id)).push().getKey();
+
+//        databaseReference.child("packages/" + activity.getPackageName().replaceAll("\\.","_") + "/bucket/"+id+"/"+key).setValue(speech)
+        databaseReference.child(PACKAGE_TABLE).child(packageName).child("bucket").child(String.valueOf(id)).child(key).setValue(speech)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d("TAG", "onSuccess: ");
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d("TAG", "onFailure: " + e);
+            }
+        });
 
     }
 
