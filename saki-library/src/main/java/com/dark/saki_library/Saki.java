@@ -10,8 +10,16 @@ import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.util.Log;
+import android.widget.Button;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Created by darshan on 14/10/16.
@@ -19,15 +27,33 @@ import java.util.ArrayList;
 
 public class Saki implements RecognitionListener {
 
+    public final String PACKAGE_TABLE = "packages";
+    public final String ACTIVITY_TABLE = "activities";
+    public final String VIEW_TABLE = "views";
+
+    ArrayList<Integer> listOfIds = new ArrayList<>();
+    HashMap<Integer, String> idsHash = new HashMap<>();
+
+    DatabaseReference databaseReference;
+
     private static final String TAG = "Darshan";
     Activity activity;
 
     private SpeechRecognizer speech = null;
     private Intent recognizerIntent;
 
+
+    String activityName;
+    String packageName;
+
     public Saki(Activity activity) {
         this.activity = activity;
+        databaseReference = FirebaseDatabase.getInstance().getReference();
         showChatHead();
+
+        packageName = activity.getPackageName().replaceAll("\\.", "_");
+        activityName = activity.getClass().getSimpleName();
+
     }
 
     void showChatHead() {
@@ -179,4 +205,39 @@ public class Saki implements RecognitionListener {
         speech.startListening(recognizerIntent);
 
     }
+
+    public void registerButton(final Button button, final String hint) {
+
+        listOfIds.add(button.getId());
+
+        idsHash.put(button.getId(), "Button");
+        // add to the database
+
+        final DatabaseReference localRef = databaseReference.child(PACKAGE_TABLE).child(packageName).child(ACTIVITY_TABLE).child(activityName).child(VIEW_TABLE);
+
+        localRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getValue() == null) {
+                    localRef.child("" + button.getId()).child("hint").setValue(hint);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+                Log.d(TAG, "onCancelled: ");
+
+            }
+        });
+
+
+    }
+
+    public void destroy() {
+        speech.destroy();
+        activity.stopService(new Intent(activity, ChatHeadService.class));
+
+    }
+
 }
