@@ -43,7 +43,6 @@ public class Saki implements RecognitionListener {
 
     TextToSpeech textToSpeech;
 
-    ArrayList<Integer> listOfIds = new ArrayList<>();
     HashMap<Integer, String> idsHash = new HashMap<>();
 
     DatabaseReference databaseReference;
@@ -70,8 +69,10 @@ public class Saki implements RecognitionListener {
 
         getActivityHint();
 
+        registerBackButton("Go back");
 
     }
+
 
     public void initTTS() {
 
@@ -257,7 +258,6 @@ public class Saki implements RecognitionListener {
 
     public void registerButton(final Button button, final String hint) {
 
-        listOfIds.add(button.getId());
         idsHash.put(button.getId(), ViewTypes.BUTTON);
 
         // add to the database
@@ -277,9 +277,30 @@ public class Saki implements RecognitionListener {
     }
 
 
+    public void registerBackButton(final String hint) {
+
+        idsHash.put(0, ViewTypes.BACK_BUTTON);
+
+        // add to the database
+        final DatabaseReference localRef = databaseReference.child(PACKAGE_TABLE).child(packageName).child(ACTIVITY_TABLE).child(activityName).child(VIEW_TABLE);
+        localRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getValue() == null) {
+                    localRef.child("" + 0).child("hint").setValue(hint);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+
+
+    }
+
     public void registerEditText(final EditText editText, final String hint) {
 
-        listOfIds.add(editText.getId());
         idsHash.put(editText.getId(), ViewTypes.EDIT_TEXT);
         // add to the database
 
@@ -303,7 +324,6 @@ public class Saki implements RecognitionListener {
 
     public void registerTextView(final TextView textView, final String hint) {
 
-        listOfIds.add(textView.getId());
         idsHash.put(textView.getId(), ViewTypes.TEXT_VIEW);
         // add to the database
 
@@ -450,3 +470,5 @@ public class Saki implements RecognitionListener {
     }
 
 }
+
+
