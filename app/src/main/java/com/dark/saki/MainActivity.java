@@ -24,7 +24,26 @@ public class MainActivity extends AppCompatActivity {
 
         saki.registerButton(button, "testing this hint");
 
-        saki.storeTheSpeechText(123,"this is a test speech");
+        saki.storeTheSpeechText(123, "this is a test speech");
+
+        saki.setActivityHint("Hey! This is a random message.");
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(3000);
+
+                    saki.initTTS();
+
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        thread.start();
+
 
     }
 
@@ -32,5 +51,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         saki.destroy();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        saki.onPause();
     }
 }

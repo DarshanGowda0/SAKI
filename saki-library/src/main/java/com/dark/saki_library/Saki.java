@@ -1,5 +1,6 @@
 package com.dark.saki_library;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
@@ -9,6 +10,8 @@ import android.provider.Settings;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
@@ -26,6 +29,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 
 /**
  * Created by darshan on 14/10/16.
@@ -37,6 +41,8 @@ public class Saki implements RecognitionListener {
     public final String ACTIVITY_TABLE = "activities";
     public final String VIEW_TABLE = "views";
 
+    TextToSpeech textToSpeech;
+
     ArrayList<Integer> listOfIds = new ArrayList<>();
     HashMap<Integer, String> idsHash = new HashMap<>();
 
@@ -44,6 +50,7 @@ public class Saki implements RecognitionListener {
 
     private static final String TAG = "Darshan";
     Activity activity;
+    String activityHint = "Sorry! I don't have that information!";
 
     private SpeechRecognizer speech = null;
     private Intent recognizerIntent;
@@ -53,6 +60,7 @@ public class Saki implements RecognitionListener {
     String packageName;
 
     public Saki(Activity activity) {
+
         this.activity = activity;
         databaseReference = FirebaseDatabase.getInstance().getReference();
         showChatHead();
@@ -60,6 +68,45 @@ public class Saki implements RecognitionListener {
         packageName = activity.getPackageName().replaceAll("\\.", "_");
         activityName = activity.getClass().getSimpleName();
 
+        getActivityHint();
+
+
+    }
+
+    public void initTTS() {
+
+
+        textToSpeech = new TextToSpeech(activity, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status != TextToSpeech.ERROR) {
+                    textToSpeech.setLanguage(Locale.US);
+                    textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                        @Override
+                        public void onStart(String utteranceId) {
+
+                            //TODO handle the stt
+
+                        }
+
+                        @Override
+                        public void onDone(String utteranceId) {
+                            activity.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void onError(String utteranceId) {
+
+                        }
+                    });
+                    speakActivityHint();
+                }
+            }
+        });
     }
 
     void showChatHead() {
@@ -327,8 +374,6 @@ public class Saki implements RecognitionListener {
     public void storeTheSpeechText(Integer id, String speech) {
 
         String key = databaseReference.child(PACKAGE_TABLE).child(packageName).child("bucket").child(String.valueOf(id)).push().getKey();
-
-//        databaseReference.child("packages/" + activity.getPackageName().replaceAll("\\.","_") + "/bucket/"+id+"/"+key).setValue(speech)
         databaseReference.child(PACKAGE_TABLE).child(packageName).child("bucket").child(String.valueOf(id)).child(key).setValue(speech)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
@@ -341,6 +386,66 @@ public class Saki implements RecognitionListener {
                 Log.d("TAG", "onFailure: " + e);
             }
         });
+
+    }
+
+    public void setActivityHint(String hint) {
+
+        databaseReference.child(PACKAGE_TABLE).child(packageName).child(ACTIVITY_TABLE).child(activityName).child("hint").setValue(hint);
+
+    }
+
+    public void getActivityHint() {
+
+        databaseReference.child(PACKAGE_TABLE).child(packageName).child(ACTIVITY_TABLE).child(activityName).child("hint").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getValue() != null)
+                    activityHint = dataSnapshot.getValue(String.class);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+    }
+
+
+    public void onPause() {
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
+        }
+    }
+
+    public void speakActivityHint() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            ttsGreater21(activityHint);
+        } else {
+            ttsUnder20(activityHint);
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private void ttsUnder20(String text) {
+
+        Log.d(TAG, "ttsUnder20() called with: text = [" + text + "]");
+
+        HashMap<String, String> map = new HashMap<>();
+        map.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "MessageId");
+        textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, map);
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private void ttsGreater21(String text) {
+
+        Log.d(TAG, "ttsGreater21() called with: text = [" + text + "]");
+
+        String utteranceId = activity.hashCode() + "";
+        textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, utteranceId);
+
 
     }
 
