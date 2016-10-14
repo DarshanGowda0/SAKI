@@ -23,17 +23,17 @@ Saki saki = new Saki(getApplicationContext());
 
 ### some use cases - 
 
-###### register Button by passing the `button` instance and the **hint** for the use case of the button
+register Button by passing the `button` instance and the **hint** for the use case of the button
 `
 saki.registerButton(button,"Book a cab!");
 `
 
-###### register EditText by passing the `editText` instance and the **hint** for the use case of the editText
+register EditText by passing the `editText` instance and the **hint** for the use case of the editText
 `
 saki.registerEditText(editText,"Set the pick-up location to Bengaluru");
 `
 
-###### optionally register the default back-button 
+optionally register the default back-button 
 `
 saki.registerBackButton("Go back!");
 `
