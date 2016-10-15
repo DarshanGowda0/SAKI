@@ -11,7 +11,6 @@ import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
-import android.speech.tts.UtteranceProgressListener;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
@@ -95,32 +94,12 @@ public class Saki implements RecognitionListener {
             public void onInit(int status) {
                 if (status != TextToSpeech.ERROR) {
                     textToSpeech.setLanguage(Locale.US);
-                    textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-                        @Override
-                        public void onStart(String utteranceId) {
-
-                            //TODO handle the stt
-
-                        }
-
-                        @Override
-                        public void onDone(String utteranceId) {
-                            activity.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                }
-                            });
-                        }
-
-                        @Override
-                        public void onError(String utteranceId) {
-
-                        }
-                    });
                     speakActivityHint();
                 }
             }
         });
+
+
     }
 
     void showChatHead() {
@@ -577,6 +556,15 @@ public class Saki implements RecognitionListener {
             ttsUnder20(activityHint);
         }
     }
+
+    public void speakText(String text) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            ttsGreater21(text);
+        } else {
+            ttsUnder20(text);
+        }
+    }
+
 
     @SuppressWarnings("deprecation")
     private void ttsUnder20(String text) {

@@ -49,6 +49,8 @@ public class BookingActivity extends AppCompatActivity {
 
         saki.startListener();
 
+
+
     }
 
     public void bookACab(View view) {
@@ -58,6 +60,9 @@ public class BookingActivity extends AppCompatActivity {
         if (pickupLoc.isEmpty()) {
             etPickup.setError("Please enter a pickup location!");
             etPickup.requestFocus();
+
+
+
             return;
         }
 

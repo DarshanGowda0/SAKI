@@ -58,6 +58,8 @@ public class TicketActivity extends AppCompatActivity {
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
+
+
         startActivity(intent);
     }
 
