@@ -34,6 +34,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -41,6 +42,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by darshan on 14/10/16.
@@ -415,9 +417,10 @@ public class Saki implements RecognitionListener {
 
     public void parseData(JSONObject data, String speech) {
 
-        Integer id = 0;
-        String splitString = "";
+        ArrayList<Integer> idList = new ArrayList<>();
+        ArrayList<String> splitString = new ArrayList<>();
         String isConfident = "no";
+        ArrayList<String> info = new ArrayList<>();
 
         //parse the json and store in those objects
 
@@ -425,41 +428,70 @@ public class Saki implements RecognitionListener {
 
         Log.d(TAG, "parseData: " + data);
 
+
+//[{"confident":"no","return_list":[{"info":null,"split_string":"Chandy something ","id":"2131492989"}]}]
+
         try {
             isConfident = data.getString("confident");
-            id = Integer.parseInt(data.getJSONArray("return_list").getJSONObject(0).getString("id"));
-            splitString = data.getJSONArray("return_list").getJSONObject(0).getString("split_string");
+            JSONArray jsonArray = data.getJSONArray("return_list");
+
+            for (int i = 0; i < jsonArray.length(); i++) {
+                splitString.add(jsonArray.getJSONObject(i).getString("split_string"));
+                idList.add(Integer.parseInt(jsonArray.getJSONObject(i).getString("id")));
+                info.add(jsonArray.getJSONObject(i).getString("info"));
+            }
+
+//            id = Integer.parseInt(data.getJSONArray("return_list").getJSONObject(0).getString("id"));
+//            splitString = data.getJSONArray("return_list").getJSONObject(0).getString("split_string");
+//            info = data.getJSONArray("return_list").getJSONObject(0).getString("info");
 
         } catch (JSONException e) {
             e.printStackTrace();
         }
 //
-//          
-        Log.d(TAG, "parseData: " + id + " " + splitString + " " + isConfident);
+//
 
+        HashMap<Integer, String> thisActivityIds = new HashMap<>();
 
-        if (idsHash.containsKey(id)) {
-            View view = activity.findViewById(id);
+        for (Integer id : idList) {
+            if (idsHash.containsKey(id)) {
+                thisActivityIds.put(id, idsHash.get(id));
+                idsHash.remove(id);
+            }
+        }
 
-            String type = idsHash.get(id);
+        //TODO store the idList somewhere
 
-            switch (type) {
+        Set<Integer> idSet = thisActivityIds.keySet();
 
-                case ViewTypes.BUTTON:
-                    if (view.hasOnClickListeners()) view.callOnClick();
-                    break;
+        for (Integer id : idSet) {
 
-                case ViewTypes.EDIT_TEXT:
-                    ((EditText) view).setText(splitString);
-                    break;
+            int index = idList.indexOf(id);
 
-                case ViewTypes.TEXT_VIEW:
-                    ((TextView) view).setText(splitString);
-                    break;
+            if (thisActivityIds.containsKey(id)) {
+                View view = activity.findViewById(id);
+
+                String type = idsHash.get(id);
+
+                switch (type) {
+
+                    case ViewTypes.BUTTON:
+                        if (view.hasOnClickListeners()) view.callOnClick();
+                        break;
+
+                    case ViewTypes.EDIT_TEXT:
+                        ((EditText) view).setText(info.get(index));
+                        break;
+
+                    case ViewTypes.TEXT_VIEW:
+                        ((TextView) view).setText(info.get(index));
+                        break;
+
+                }
+
+                storeTheSpeechText(id, splitString.get(index));
 
             }
-
-            storeTheSpeechText(id, speech);
 
         }
 
