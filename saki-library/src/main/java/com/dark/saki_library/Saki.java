@@ -181,6 +181,14 @@ public class Saki implements RecognitionListener {
         String text = "";
         for (String result : matches) {
             text += result + "\n";
+
+            if (result.toLowerCase().startsWith("explain")) {
+                Log.d(TAG, "onResults: explain called");
+
+                initTTS();
+
+            }
+
             if (result.toLowerCase().startsWith("hulk")) {
                 Log.d(TAG, "onResults: send this to saki:" + result);
 //            ChatHeadService.chatHead.setImageResource(R.drawable.mic_go);
@@ -189,7 +197,7 @@ public class Saki implements RecognitionListener {
                     result.substring(5);
                     sendData(result.substring(5));
                 } catch (Exception e) {
-                    Log.e(TAG, "onResults: "+e);
+                    Log.e(TAG, "onResults: " + e);
                 }
 
                 break;
@@ -425,7 +433,7 @@ public class Saki implements RecognitionListener {
 
         boolean isButtonPresent = false;
         View buttonView = null;
-        
+
         ArrayList<Integer> idList = new ArrayList<>();
         ArrayList<String> splitString = new ArrayList<>();
         String isConfident = "no";
@@ -472,8 +480,7 @@ public class Saki implements RecognitionListener {
         //TODO store the idList somewhere
 
         Set<Integer> idSet = thisActivityIds.keySet();
-        
-        
+
 
         for (Integer id : idSet) {
 
@@ -506,8 +513,8 @@ public class Saki implements RecognitionListener {
             }
 
         }
-        
-        if(isButtonPresent){
+
+        if (isButtonPresent) {
             if (buttonView.hasOnClickListeners()) buttonView.callOnClick();
         }
 

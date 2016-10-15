@@ -41,6 +41,8 @@ public class BookingActivity extends AppCompatActivity {
         saki.registerEditText(etPickup, "pick up location is Bangalore");
         saki.registerEditText(etDrop, "drop location is Bangalore");
 
+        saki.setActivityHint("Hey! This is a demo application, where you can book a cab by setting the pickup and drop locations");
+
         Log.d("TAG", "onCreate: btn" + button.getId());
         Log.d("TAG", "onCreate: pickup" + etPickup.getId());
         Log.d("TAG", "onCreate: drop" + etDrop.getId());
