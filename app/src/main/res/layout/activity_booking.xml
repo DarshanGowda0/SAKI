@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="com.dark.saki.BookingActivity">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:text="CandyCab"
+        android:typeface="sans"
+        android:textSize="32sp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:text="The no nonsense cab booking app that does nothing, like anything ;)"
+        android:textSize="12sp"
+        android:layout_marginTop="20dp"/>
+
+
+        <EditText
+            android:id="@+id/et_pickup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Pickup Location"/>
+
+        <EditText
+            android:id="@+id/et_drop"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Drop Location"/>
+
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:id="@+id/bookCab"
+        android:layout_marginTop="60dp"
+        android:text="Book a Cab"
+        android:onClick="bookACab"
+        style="@style/Widget.AppCompat.Button.Colored"/>
+
+</LinearLayout>

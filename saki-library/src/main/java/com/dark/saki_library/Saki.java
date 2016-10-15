@@ -181,16 +181,22 @@ public class Saki implements RecognitionListener {
         String text = "";
         for (String result : matches) {
             text += result + "\n";
-            if (result.toLowerCase().startsWith("saki")) {
+            if (result.toLowerCase().startsWith("hulk")) {
                 Log.d(TAG, "onResults: send this to saki:" + result);
 //            ChatHeadService.chatHead.setImageResource(R.drawable.mic_go);
-//                sendData(result.substring(5));
+
+                try {
+                    result.substring(5);
+                    sendData(result.substring(5));
+                } catch (Exception e) {
+                    Log.e(TAG, "onResults: "+e);
+                }
 
                 break;
             }
-            if (result.toLowerCase().contains("goodbye saki")) {
+            if (result.toLowerCase().contains("goodbye hulk")) {
 //                ChatHeadService.chatHead.setImageResource(R.drawable.mic_stop);
-                Log.d(TAG, "onResults: bye saki");
+                Log.d(TAG, "onResults: bye hulk");
                 speech.stopListening();
                 speech.destroy();
             }
@@ -375,7 +381,7 @@ public class Saki implements RecognitionListener {
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("app_name", "com_dark_candycab");
-            jsonObject.put("current_activity", "BookingActivity");
+            jsonObject.put("current_activity", activity.getClass().getSimpleName());
             jsonObject.put("message", speech);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -417,6 +423,9 @@ public class Saki implements RecognitionListener {
 
     public void parseData(JSONObject data, String speech) {
 
+        boolean isButtonPresent = false;
+        View buttonView = null;
+        
         ArrayList<Integer> idList = new ArrayList<>();
         ArrayList<String> splitString = new ArrayList<>();
         String isConfident = "no";
@@ -463,6 +472,8 @@ public class Saki implements RecognitionListener {
         //TODO store the idList somewhere
 
         Set<Integer> idSet = thisActivityIds.keySet();
+        
+        
 
         for (Integer id : idSet) {
 
@@ -471,12 +482,13 @@ public class Saki implements RecognitionListener {
             if (thisActivityIds.containsKey(id)) {
                 View view = activity.findViewById(id);
 
-                String type = idsHash.get(id);
+                String type = thisActivityIds.get(id);
+                Log.d(TAG, "parseData: " + type);
 
                 switch (type) {
-
                     case ViewTypes.BUTTON:
-                        if (view.hasOnClickListeners()) view.callOnClick();
+                        isButtonPresent = true;
+                        buttonView = view;
                         break;
 
                     case ViewTypes.EDIT_TEXT:
@@ -493,6 +505,10 @@ public class Saki implements RecognitionListener {
 
             }
 
+        }
+        
+        if(isButtonPresent){
+            if (buttonView.hasOnClickListeners()) buttonView.callOnClick();
         }
 
 
