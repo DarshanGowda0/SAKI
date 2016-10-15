@@ -19,6 +19,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
@@ -27,9 +34,13 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Created by darshan on 14/10/16.
@@ -123,7 +134,6 @@ public class Saki implements RecognitionListener {
             activity.startService(intent);
         }
 
-//        activity.startService(new Intent(activity, ChatHeadService.class));
     }
 
 
@@ -352,16 +362,81 @@ public class Saki implements RecognitionListener {
 
     }
 
-    public void sendData(String speech) {
+    public void sendData(final String speech) {
+
+        RequestQueue queue = Volley.newRequestQueue(activity);
+
+
+        final String url = "http://204.152.203.111:8889/predict/?user_name=nigga&api_key=please";
+        String jsonBody = null;
+
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("app_name", "com_dark_candycab");
+            jsonObject.put("current_activity", "BookingActivity");
+            jsonObject.put("message", speech);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        Log.d(TAG, "sendData: " + jsonObject);
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, url, jsonObject, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+
+                Log.d(TAG, "onResponse() called with: response = [" + response + "]");
+
+                parseData(response, speech);
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+                Log.d(TAG, "onErrorResponse() called with: error = [" + error + "]");
+
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                HashMap<String, String> headers = new HashMap<String, String>();
+                headers.put("Content-Type", "application/json");
+                return headers;
+            }
+        };
+
+
+        queue.add(jsonObjectRequest);
+
 
     }
 
-    public void parseData(String data, String speech) {
+
+    public void parseData(JSONObject data, String speech) {
 
         Integer id = 0;
         String splitString = "";
+        String isConfident = "no";
 
         //parse the json and store in those objects
+
+//            JSONArray jsonArray = new JSONArray(data);
+
+        Log.d(TAG, "parseData: " + data);
+
+        try {
+            isConfident = data.getString("confident");
+            id = Integer.parseInt(data.getJSONArray("return_list").getJSONObject(0).getString("id"));
+            splitString = data.getJSONArray("return_list").getJSONObject(0).getString("split_string");
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+//
+//          
+        Log.d(TAG, "parseData: " + id + " " + splitString + " " + isConfident);
+
 
         if (idsHash.containsKey(id)) {
             View view = activity.findViewById(id);

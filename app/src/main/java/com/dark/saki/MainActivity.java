@@ -20,29 +20,31 @@ public class MainActivity extends AppCompatActivity {
         saki = new Saki(MainActivity.this);
         saki.startListener();
 
-        button = (Button) findViewById(R.id.button2);
+//        button = (Button) findViewById(R.id.button2);
+//
+//        saki.registerButton(button, "testing this hint");
+//
+//        saki.storeTheSpeechText(123, "this is a test speech");
+//
+//        saki.setActivityHint("Hey! This is a random message.");
+//
+//        Thread thread = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                try {
+//                    Thread.sleep(3000);
+//
+//                    saki.initTTS();
+//
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        });
+//
+//        thread.start();
 
-        saki.registerButton(button, "testing this hint");
-
-        saki.storeTheSpeechText(123, "this is a test speech");
-
-        saki.setActivityHint("Hey! This is a random message.");
-
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(3000);
-
-                    saki.initTTS();
-
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        thread.start();
+        saki.sendData("Chandy something");
 
 
     }
